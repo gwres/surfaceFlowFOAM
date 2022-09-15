@@ -1,0 +1,18 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # run from this directory
+set -x
+
+# cleaning solvers 
+
+cd surfaceFlowBoundaryConditions/
+wclean criticalDepthOverlandOutletBC
+rm ${FOAM_USER_LIBBIN}/criticalDepthOverlandOutletBC.so
+wclean freeFlowOutletBC
+rm ${FOAM_USER_LIBBIN}/freeFlowOutletBC.so
+wclean imperviousSurfaceFlowBC
+rm ${FOAM_USER_LIBBIN}/imperviousSurfaceFlowBC.so
+wclean specifiedConstantOverlandDischargeBC
+rm ${FOAM_USER_LIBBIN}/specifiedConstantOverlandDischargeBC.so
+cd ..
+wclean surfaceFlowFOAM
+rm ${FOAM_USER_APPBIN}/surfaceFlowFOAM
