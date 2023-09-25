@@ -16,3 +16,7 @@ rm ${FOAM_USER_LIBBIN}/specifiedConstantOverlandDischargeBC.so
 cd ..
 wclean surfaceFlowFOAM
 rm ${FOAM_USER_APPBIN}/surfaceFlowFOAM
+wclean surfaceFlowFOAM_DW
+rm ${FOAM_USER_APPBIN}/surfaceFlowFOAM_DW
+wclean surfaceFlowFOAM_Explicit
+rm ${FOAM_USER_APPBIN}/surfaceFlowFOAM_Explicit

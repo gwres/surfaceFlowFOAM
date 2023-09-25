@@ -11,4 +11,6 @@ wmake libso imperviousSurfaceFlowBC
 wmake libso specifiedConstantOverlandDischargeBC
 cd ..
 wmake surfaceFlowFOAM
+wmake surfaceFlowFOAM_DW
+wmake surfaceFlowFOAM_Explicit
 
