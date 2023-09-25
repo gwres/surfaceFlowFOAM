@@ -23,13 +23,13 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 /*-----------------------------------------------------------------------*\
 Class
-    Foam::surfaceFlowFOAM
+    Foam::surfaceFlowFOAM_Explicit
 
 Group
-    surfaceFlowFOAM
+    surfaceFlowFOAM_Explicit
 
 Description
-    Modeling of overland flow [Implicit formulation with Picard Iteration Method]
+    Modeling of overland flow [Explicit formulation]
 \*-----------------------------------------------------------------------*/
 #include "fvCFD.H"
 #include "IFstream.H"
@@ -54,13 +54,7 @@ int main(int argc, char *argv[])
     //------------------------------------------------------------------------------------------------------------------------------//
     #include "readModelParameters.H" 									//Reading the input parameters for Shallow Water Equation
         
-    #include "readPicardParameters.H" 									//Reading the input parameters for Picard Iteration Method
-    
-    //Opening files for writing the Number of Picard Iterations, Outlet Discharge, and  MBE for every time-step in a CSV file
-    std::ofstream file1;
-	file1.open("PicardIterations.csv");
-	
-	std::ofstream file2;
+    std::ofstream file2;
 	file2.open("outletDischarge.csv");
 	
 	std::ofstream file3;
@@ -69,24 +63,9 @@ int main(int argc, char *argv[])
 	//------------------------------------------------------------------------------------------------------------------------------//
 	label N_ele = mesh.cells().size(); 									//Number of Elements
 	
-	label nMARK = 0;           	       									//Indicator for Convergence Failure
-	
-	label TrMARK = 0;           	       								//Indicator for end of precipitation 
-    	
-	scalar err = 0.0;    	    	   									//Initialization of Picard iteration error
-        
-    label sc = 0;				       									//Initialization of the Stabilization counter
-        
-    label NP = NPl;           	       									//Initialization of Picard Iteration number
+	scalar MB2 = 0.0;			       									//Initialization of total net flux variable
     
-    scalar MB2 = 0.0;			       									//Initialization of total net flux variable
-    
-    scalar Pic_tol = delta_htol;
-    
-	scalar oldTime = 0.0;	  	       									//Initialization of previous time variable
-	label oldTimeIndex = 0;	  	       									//Initialization of previous time-index variable
-	
-	volScalarField h0 = h;    	 	   									//Initial flow depth
+    volScalarField h0 = h;    	 	   									//Initial flow depth
 	
     //------------------------------------------------------------------------------------------------------------------------------//
     //Initialization of parameters for DW Model
@@ -98,103 +77,29 @@ int main(int argc, char *argv[])
     {
 		#include "readTimeControls.H"
 		
-		//Reset DeltaT to minDeltaT after precipitation stops
-		if ((runTime.value() > Tr) && (TrMARK == 0))
-		{
-			runTime.setDeltaT
-			(
-				minDeltaT
-			);
-			TrMARK = 1;
-			sc = 0;
-		}
-		
 		Info << "\ndeltaT = " <<  runTime.deltaT().value() << endl;
         
         Info << "\nTime = " << runTime.timeName() << endl;	
         
         #include "specifyPrecipitation.H"
-        
-        //--------------------------------------------------------------------------------------------------------------------------//
-        //Picard Iteration Loop
-		for(label count = 1; count < NPmax + 1; count++)
-		{
-			#include "zeroInertiaModel.H"
-			
-			//----------------------------------------------------------------------------------------------------------------------//	
-			//Calculating the Convergence Criterion
-			err = Foam::pow((gSumMag(Foam::pow((h - hM), 2.0)())/N_ele), 0.5) ;
-			
-			//----------------------------------------------------------------------------------------------------------------------//
-			//Termination criterion for Picard Iteration Loop
-			reduce(count, maxOp<label>());
-			
-			if ((err < Pic_tol) && (count >= 2))
-			{
-				NP = count;
-				Info << "\nError = " << err << endl;
-				Info << "\nNo.of Picard Iterations = " << NP << endl;
-				break;
-			}
-			else if (count == NPmax)
-			{
-				NP = count;
-				Info << "\nConvergence failed!" << endl;
-				Info << "\nError = " << err << endl;
-				Info << "\nNo.of Picard Iterations = " << NP << endl;
-				
-				runTime.setTime											//Set Runtime to previous time-level
-				(
-					oldTime, oldTimeIndex
-				);
-			 
-				h = hN;													//Resetting 'h' and 'hN' field values
-				hN = hNm1;
-				
-				nMARK = 1;				
-			}
-			else
-			{
-				NP = count;
-			}
-	
-			//----------------------------------------------------------------------------------------------------------------------//
-			hM = h;
-			
-		} 																//End of Picard Iteration Loop
 		
+		#include "zeroInertiaModel.H"
+        
         //--------------------------------------------------------------------------------------------------------------------------//
         #include "massBalanceError.H" 									//Calculation of Mass Balance Error (MBE)
 		
-		if (nMARK != 1)
-		{			
-			file1 << runTime.timeName() << "," << NP << nl;				//Writing the Number of Picard Iterations
-			file3 << runTime.timeName() << "," << MB1 << "," << MB2 << "," << MBE << nl;	//Writing the MBE
-		}
+		file3 << runTime.timeName() << "," << MB1 << "," << MB2 << "," << MBE << nl;	//Writing the MBE
 		
 		//--------------------------------------------------------------------------------------------------------------------------//
-		
-		
 		#include "outletDischarge.H"									//Calculates the outlet discharge
 		
 		runTime.write();
-		
-		oldTime = runTime.value();
-		oldTimeIndex = runTime.timeIndex();
-		
-		hNm1 = hN;
-		hN = h;
-		
-		nMARK = 0;
-		
-		#include "setDeltaT.H"											//Adjust time-step
 		
 		Info << "-------------------------------------------------------" << endl;
 		
 	} 																	//End of Time-Loop
 	
 	//------------------------------------------------------------------------------------------------------------------------------//
-	file1.close();
 	file2.close();
 	file3.close();
 	

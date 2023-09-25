@@ -42,7 +42,7 @@ else if (bedSlopeMode.match("BE"))										//Bed-elevation provided
 }
 
 volScalarField coeff1 = Foam::pow(h, 5.0/3.0)/Foam::pow(hU, 5.0/3.0);
-volScalarField coeff2 = Foam::pow(mag(S0), 0.5) ;
+volScalarField coeff2 = Foam::pow(mag(S0), 0.5);
 coeff2 = max(coeff2, lc);
 			
 alphaO = (inv(nRGH)*(coeff1/coeff2)) & qUO;

@@ -23,13 +23,13 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 /*-----------------------------------------------------------------------*\
 Class
-    Foam::surfaceFlowFOAM
+    Foam::surfaceFlowFOAM_DW
 
 Group
-    surfaceFlowFOAM
+    surfaceFlowFOAM_DW
 
 Description
-    Modeling of overland flow [Implicit formulation with Picard Iteration Method]
+    Diffusive Wave Modeling of overland flow 
 \*-----------------------------------------------------------------------*/
 #include "fvCFD.H"
 #include "IFstream.H"
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
         //Picard Iteration Loop
 		for(label count = 1; count < NPmax + 1; count++)
 		{
-			#include "zeroInertiaModel.H"
+			#include "waveModel.H"
 			
 			//----------------------------------------------------------------------------------------------------------------------//	
 			//Calculating the Convergence Criterion

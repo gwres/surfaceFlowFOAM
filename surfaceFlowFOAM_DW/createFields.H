@@ -23,13 +23,13 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 /*-----------------------------------------------------------------------*\
 Class
-    Foam::createFields[surfaceFlowFOAM]
+    Foam::createFields[surfaceFlowFOAM_DW]
 
 Group
-    surfaceFlowFOAM
+    surfaceFlowFOAM_DW
 
 Description
-    Modeling of overland flow [Implicit formulation with Picard Iteration Method]
+    Diffusive Wave Modeling of overland flow [Implicit formulation]
 /*------------------------------------------------------------------------------*/
 Info<< "Reading SURFACE WATER DEPTH field h\n" << endl;
 

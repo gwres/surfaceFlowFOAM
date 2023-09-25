@@ -23,42 +23,32 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 /*-----------------------------------------------------------------------*\
 Class
-    Foam::massBalanceError[surfaceFlowFOAM]
+    Foam::outletDischarge[surfaceFlowFOAM_DW]
 
 Group
-    surfaceFlowFOAM
+    surfaceFlowFOAM_DW
 
 Description
-    Calculates the cumulative Mass Balance Error after each time step.
+    Calculates the discharge through the outlet boundary
 \*-----------------------------------------------------------------------*/
-
-scalar MB1 = 0.0;
-scalar MB2_temp = 0.0;
-scalar MBE = 0.0;
-		
 if (nMARK != 1)
 {
+	scalar qO_out = 0.0;
 
-	//Calculation of Total additional mass in the domain (MB1)
-	MB1 = gSum(((h - h0)*mesh.V())());
-		
-	//Calculation of Total net flux into the domain (MB2)
-	forAll (mesh.boundaryMesh(), i)
+	label outletID = mesh.boundaryMesh().findPatchID("outlet");
+
+	forAll(mesh.boundaryMesh(), patchID)
 	{
-		forAll(qO.boundaryField()[i], j)
+		if ((patchID == outletID)) 
 		{
-			MB2_temp = MB2_temp + (-qO.boundaryField()[i][j]*mesh.magSf().boundaryField()[i][j]);
+			forAll(qO.boundaryField()[patchID], faceID)
+			{
+				qO_out = qO_out + qO.boundaryField()[patchID][faceID]*mesh.magSf().boundaryField()[patchID][faceID];
+			}
 		}
 	}
-	
-	reduce(MB2_temp, sumOp<scalar>());
-	
-	MB2_temp = MB2_temp + gSum(((P - I)*mesh.V())());
-	
-	MB2 = MB2 + MB2_temp*runTime.deltaT().value();
-			
-	MBE = mag(MB2 - MB1);
-	
-	Info << "\nCummulative Mass Balance Error = " << MBE << endl;
 
+	reduce(qO_out, sumOp<scalar>());
+
+	file2 << runTime.timeName() << "," << qO_out << nl;
 }

@@ -23,10 +23,10 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 /*-----------------------------------------------------------------------*\
 Class
-    Foam::massBalanceError[surfaceFlowFOAM]
+    Foam::massBalanceError[surfaceFlowFOAM_DW]
 
 Group
-    surfaceFlowFOAM
+    surfaceFlowFOAM_DW
 
 Description
     Calculates the cumulative Mass Balance Error after each time step.

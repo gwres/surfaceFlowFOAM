@@ -23,42 +23,18 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 /*-----------------------------------------------------------------------*\
 Class
-    Foam::massBalanceError[surfaceFlowFOAM]
+    Foam::readPicardParameters[surfaceFlowFOAM_DW]
 
 Group
-    surfaceFlowFOAM
+    surfaceFlowFOAM_DW
 
 Description
-    Calculates the cumulative Mass Balance Error after each time step.
+    Reads the input parameters required for Picard Iteration Method.
 \*-----------------------------------------------------------------------*/
 
-scalar MB1 = 0.0;
-scalar MB2_temp = 0.0;
-scalar MBE = 0.0;
-		
-if (nMARK != 1)
-{
-
-	//Calculation of Total additional mass in the domain (MB1)
-	MB1 = gSum(((h - h0)*mesh.V())());
-		
-	//Calculation of Total net flux into the domain (MB2)
-	forAll (mesh.boundaryMesh(), i)
-	{
-		forAll(qO.boundaryField()[i], j)
-		{
-			MB2_temp = MB2_temp + (-qO.boundaryField()[i][j]*mesh.magSf().boundaryField()[i][j]);
-		}
-	}
-	
-	reduce(MB2_temp, sumOp<scalar>());
-	
-	MB2_temp = MB2_temp + gSum(((P - I)*mesh.V())());
-	
-	MB2 = MB2 + MB2_temp*runTime.deltaT().value();
-			
-	MBE = mag(MB2 - MB1);
-	
-	Info << "\nCummulative Mass Balance Error = " << MBE << endl;
-
-}
+const label NPl = picardDict.lookupOrDefault<label>("Picard_lower_limit", 1);
+const label NPu = picardDict.lookupOrDefault<label>("Picard_upper_limit", 1);
+const label NPmax = picardDict.lookupOrDefault<label>("Max_Picard_iterations", 1);
+const label Nstab_max = picardDict.lookupOrDefault<label>("Max_Stabilization_Counters", 1);
+const scalar delta_f = picardDict.lookupOrDefault<scalar>("Time_factor", 1.0);
+const scalar minDeltaT = picardDict.lookupOrDefault<scalar>("minDeltaT", 1.0);

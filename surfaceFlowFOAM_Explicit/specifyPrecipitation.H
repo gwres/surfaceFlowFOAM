@@ -23,42 +23,45 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 /*-----------------------------------------------------------------------*\
 Class
-    Foam::massBalanceError[surfaceFlowFOAM]
+    Foam::specifyOverlandPrecipitation[surfaceFlowFOAM_Explicit]
 
 Group
-    surfaceFlowFOAM
+    surfaceFlowFOAM_Explicit
 
 Description
-    Calculates the cumulative Mass Balance Error after each time step.
+    Specifies the precipitation over the overland surface. (Problem Specific)
 \*-----------------------------------------------------------------------*/
-
-scalar MB1 = 0.0;
-scalar MB2_temp = 0.0;
-scalar MBE = 0.0;
-		
-if (nMARK != 1)
+if (Pmode.match("steady"))
 {
-
-	//Calculation of Total additional mass in the domain (MB1)
-	MB1 = gSum(((h - h0)*mesh.V())());
-		
-	//Calculation of Total net flux into the domain (MB2)
-	forAll (mesh.boundaryMesh(), i)
+	if (runTime.value() > Tr)
 	{
-		forAll(qO.boundaryField()[i], j)
+		P = 0.0*P;
+		P.correctBoundaryConditions();
+	}
+}
+else if (Pmode.match("unsteady"))
+{
+	if (runTime.value() <= Tmax)
+	{
+		forAll(P, i)
 		{
-			MB2_temp = MB2_temp + (-qO.boundaryField()[i][j]*mesh.magSf().boundaryField()[i][j]);
+			P[i] = Pmax*runTime.value()/Tmax;
+		}	
+	}
+	else if ((runTime.value() > Tmax) && (runTime.value() <= Tr))
+	{
+		forAll(P, i)
+		{
+			P[i] = Pmax*(Tr - runTime.value())/(Tr - Tmax);
 		}
 	}
-	
-	reduce(MB2_temp, sumOp<scalar>());
-	
-	MB2_temp = MB2_temp + gSum(((P - I)*mesh.V())());
-	
-	MB2 = MB2 + MB2_temp*runTime.deltaT().value();
-			
-	MBE = mag(MB2 - MB1);
-	
-	Info << "\nCummulative Mass Balance Error = " << MBE << endl;
-
+	else if (runTime.value() > Tr)
+	{
+		P = 0.0*P;
+	}
+	P.correctBoundaryConditions();
 }
+				
+
+
+

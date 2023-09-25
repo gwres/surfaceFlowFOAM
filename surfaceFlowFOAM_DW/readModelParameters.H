@@ -23,42 +23,20 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 /*-----------------------------------------------------------------------*\
 Class
-    Foam::massBalanceError[surfaceFlowFOAM]
+    Foam::readModelParameters[surfaceFlowFOAM_DW]
 
 Group
-    surfaceFlowFOAM
+    surfaceFlowFOAM_DW
 
 Description
-    Calculates the cumulative Mass Balance Error after each time step.
+    Reads the input parameters for surface flow
 \*-----------------------------------------------------------------------*/
 
-scalar MB1 = 0.0;
-scalar MB2_temp = 0.0;
-scalar MBE = 0.0;
-		
-if (nMARK != 1)
-{
+word bedSlopeMode(modelDict.lookup("bedSlopeMode"));
+word Pmode(modelDict.lookup("precipitationMode"));
+const scalar delta_htol = modelDict.lookupOrDefault<scalar>("h_tolerance", 1.0);
+const scalar lc = modelDict.lookupOrDefault<scalar>("leastCount", 1.0);
+const scalar Tr = modelDict.lookupOrDefault<scalar>("precipitationDuration", 1.0);
+const scalar Tmax = modelDict.lookupOrDefault<scalar>("precipitationPeakTime", 1.0);
+const scalar Pmax = modelDict.lookupOrDefault<scalar>("precipitationPeak", 1.0);
 
-	//Calculation of Total additional mass in the domain (MB1)
-	MB1 = gSum(((h - h0)*mesh.V())());
-		
-	//Calculation of Total net flux into the domain (MB2)
-	forAll (mesh.boundaryMesh(), i)
-	{
-		forAll(qO.boundaryField()[i], j)
-		{
-			MB2_temp = MB2_temp + (-qO.boundaryField()[i][j]*mesh.magSf().boundaryField()[i][j]);
-		}
-	}
-	
-	reduce(MB2_temp, sumOp<scalar>());
-	
-	MB2_temp = MB2_temp + gSum(((P - I)*mesh.V())());
-	
-	MB2 = MB2 + MB2_temp*runTime.deltaT().value();
-			
-	MBE = mag(MB2 - MB1);
-	
-	Info << "\nCummulative Mass Balance Error = " << MBE << endl;
-
-}

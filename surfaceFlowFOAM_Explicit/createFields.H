@@ -23,13 +23,13 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 /*-----------------------------------------------------------------------*\
 Class
-    Foam::createFields[surfaceFlowFOAM]
+    Foam::createFields[surfaceFlowFOAM_Explicit]
 
 Group
-    surfaceFlowFOAM
+    surfaceFlowFOAM_Explicit
 
 Description
-    Modeling of overland flow [Implicit formulation with Picard Iteration Method]
+    Modeling of overland flow [Explicit formulation]
 /*------------------------------------------------------------------------------*/
 Info<< "Reading SURFACE WATER DEPTH field h\n" << endl;
 
@@ -44,51 +44,6 @@ volScalarField h
         IOobject::AUTO_WRITE
     ),
     mesh
-);
-/*------------------------------------------------------------------------------*/
-Info<< "Reading previous Picard iteration-level SURFACE WATER DEPTH field hM\n" << endl;
-
-volScalarField hM
-(
-    IOobject
-    (
-        "hM",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::NO_WRITE
-    ),
-    h
-);
-/*------------------------------------------------------------------------------*/
-Info<< "Reading previous time-level SURFACE WATER DEPTH field hN\n" << endl;
-
-volScalarField hN
-(
-    IOobject
-    (
-        "hN",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::NO_WRITE
-    ),
-    h
-);
-/*------------------------------------------------------------------------------*/
-Info<< "Reading previous to previous time-level SURFACE WATER DEPTH field hNm1\n" << endl;
-
-volScalarField hNm1
-(
-    IOobject
-    (
-        "hNm1",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::NO_WRITE
-    ),
-    h
 );
 /*------------------------------------------------------------------------------*/
 Info<< "Reading BED ELEVATION field zB\n" << endl;
@@ -242,18 +197,6 @@ volTensorField qUO
 );
 /*------------------------------------------------------------------------------*/
 // Reads user-defined data from picardDict and modelDict in system directory
-
-IOdictionary picardDict
-(
-	IOobject
-    (
-		"picardDict",
-		runTime.system(),
-		mesh,
-		IOobject::MUST_READ,
-		IOobject::NO_WRITE
-    )
-);
 
 IOdictionary modelDict
 (

@@ -23,42 +23,44 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 /*-----------------------------------------------------------------------*\
 Class
-    Foam::massBalanceError[surfaceFlowFOAM]
+    Foam::zeroInertiaModel[surfaceFlowFOAM_Explicit]
 
 Group
-    surfaceFlowFOAM
+    surfaceFlowFOAM_Explicit
 
 Description
-    Calculates the cumulative Mass Balance Error after each time step.
+    Solves the Zero-Inertia Model for overland flow.
 \*-----------------------------------------------------------------------*/
+volVectorField gTerm = alphaO & S0;
 
-scalar MB1 = 0.0;
-scalar MB2_temp = 0.0;
-scalar MBE = 0.0;
-		
-if (nMARK != 1)
-{
+fvScalarMatrix hEqn
+(
+	fvm::ddt(h)
+	==
+	fvc::laplacian(alphaO, h)
+	+
+	fvc::div(gTerm)
+	+
+	P
+	-
+	I
+);
+				
+hEqn.relax();
+hEqn.solve();
 
-	//Calculation of Total additional mass in the domain (MB1)
-	MB1 = gSum(((h - h0)*mesh.V())());
-		
-	//Calculation of Total net flux into the domain (MB2)
-	forAll (mesh.boundaryMesh(), i)
-	{
-		forAll(qO.boundaryField()[i], j)
-		{
-			MB2_temp = MB2_temp + (-qO.boundaryField()[i][j]*mesh.magSf().boundaryField()[i][j]);
-		}
-	}
-	
-	reduce(MB2_temp, sumOp<scalar>());
-	
-	MB2_temp = MB2_temp + gSum(((P - I)*mesh.V())());
-	
-	MB2 = MB2 + MB2_temp*runTime.deltaT().value();
+h = max(lc*hU, h); 														//Depth-positivity preservation
+
+volScalarField coeff1 = Foam::pow(h, 5.0/3.0)/Foam::pow(hU, 5.0/3.0);
+volScalarField coeff2 = Foam::pow(mag(S0), 0.5);
+coeff2 = max(coeff2, lc);
 			
-	MBE = mag(MB2 - MB1);
-	
-	Info << "\nCummulative Mass Balance Error = " << MBE << endl;
+alphaO = (inv(nRGH)*(coeff1/coeff2)) & qUO;
+alphaO.correctBoundaryConditions();
 
-}
+U = -alphaO & (fvc::grad(h) + S0);										
+qO = fvc::interpolate(U) & (mesh.Sf()/mesh.magSf());					//Updating the face-normal flux
+	
+
+	
+
